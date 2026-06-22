@@ -1,0 +1,36 @@
+<div class="fixed inset-0 -z-10 overflow-hidden bg-ink">
+  <div
+    class="absolute inset-0"
+    style="background-image:
+      radial-gradient(circle at 12% 18%, var(--color-depth), transparent 58%),
+      radial-gradient(circle at 88% 82%, var(--color-dusk), transparent 55%);"
+  ></div>
+
+  <div
+    class="absolute inset-0 opacity-5"
+    style="background-image: radial-gradient(circle, var(--color-frost) 1px, transparent 1px); background-size: 28px 28px;"
+  ></div>
+
+  <svg [class]="'signature-ring absolute ' + ringWrapperClass()" viewBox="0 0 600 600" fill="none">
+    <circle
+      cx="300"
+      cy="300"
+      r="260"
+      stroke="var(--color-signal)"
+      stroke-width="2"
+      [attr.stroke-dasharray]="dashArray()"
+      stroke-linecap="round"
+    />
+    @for (tick of ticks; track tick.x1) {
+      <line
+        [attr.x1]="tick.x1"
+        [attr.y1]="tick.y1"
+        [attr.x2]="tick.x2"
+        [attr.y2]="tick.y2"
+        stroke="var(--color-frost)"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+    }
+  </svg>
+</div>

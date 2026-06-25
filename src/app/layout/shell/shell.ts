@@ -4,13 +4,14 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { AuthService } from '../../core/services/auth.service';
 import { AmbientBackground } from '../../shared/components/ambient-background/ambient-background';
+import { ThemeToggle } from '../../shared/components/theme-toggle/theme-toggle';
 import { NAV_ITEMS } from './nav-items';
 
 @Component({
   selector: 'app-shell',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, AmbientBackground, NgTemplateOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, AmbientBackground, NgTemplateOutlet, ThemeToggle],
   templateUrl: './shell.html',
 })
 export class Shell {

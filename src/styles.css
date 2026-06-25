@@ -8,9 +8,17 @@
    "signal" color standing in for the timer/CTA, and calm green/red
    for pass/fail states. Named so Tailwind generates bg-signal,
    text-flag, border-pass/30 etc. automatically.
+
+   THEMING: every token below except --color-coal is redefined under
+   [data-theme="light"] further down this file. --color-coal is
+   deliberately NOT redefined — it's used where something must stay
+   dark regardless of theme (button text on the amber signal color,
+   the mobile-nav dimming scrim), as opposed to --color-ink, which is
+   the page canvas and DOES flip between themes.
    ──────────────────────────────────────────────────────────────── */
 @theme {
-  --color-ink: #0a0f1a;       /* base canvas */
+  --color-ink: #0a0f1a;       /* base canvas — flips per theme */
+  --color-coal: #0a0f1a;      /* fixed dark — never flips, see above */
   --color-depth: #182447;     /* indigo gradient stop */
   --color-dusk: #0e3b3e;      /* teal gradient stop */
   --color-frost: #eaf2f4;     /* primary text on dark glass */
@@ -24,9 +32,29 @@
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* ────────────────────────────────────────────────────────────────
+   Light theme — same token names, light-appropriate values. Tailwind's
+   generated utilities (bg-signal, text-frost, etc.) all reference
+   var(--color-X), so overriding the variables here is enough to retheme
+   every existing template with zero class-name changes.
+   ──────────────────────────────────────────────────────────────── */
+      
+:root[data-theme="light"] {
+  --color-ink: #f4f6fb;
+  --color-depth: #d7e0fb;     /* pale indigo glow, was a deep saturated one */
+  --color-dusk: #cdf3ec;      /* pale teal glow */
+  --color-frost: #0f1729;     /* was near-white text-on-dark, now dark text-on-light */
+  --color-signal: #b9790f;    /* darkened for contrast on a light canvas */
+  --color-signal-dim: #9c6308;
+  /* --color-pass / --color-flag / --color-coal intentionally unchanged */
+}
+
 @layer base {
-  html {
+  html[data-theme="dark"] {
     color-scheme: dark;
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
   }
 
   body {
@@ -40,7 +68,7 @@
     border-radius: 4px;
   }
 
-  /* Thin, dark-aware scrollbar so it doesn't fight the glass aesthetic */
+  /* Thin, theme-aware scrollbar so it doesn't fight the glass aesthetic */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -55,10 +83,21 @@
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(234, 242, 244, 0.2);
   }
+  :root[data-theme="light"] ::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 41, 0.14);
+  }
+  :root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 41, 0.22);
+  }
 }
 
 @layer components {
-  /* The core glassmorphism surface: sidebars, cards, the auth panel. */
+  /* The core glassmorphism surface: sidebars, cards, the auth panel.
+     Dark mode: a faint white-tinted glass on a dark canvas.
+     Light mode: a brighter, more opaque white glass on a light canvas —
+     glass needs a stronger fill to stay visible once the canvas itself
+     is already light, plus a softer shadow (a dark mode-strength shadow
+     reads as a harsh smudge on a light page). */
   .glass-panel {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -67,6 +106,13 @@
     box-shadow:
       0 8px 40px rgba(0, 0, 0, 0.45),
       inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  :root[data-theme="light"] .glass-panel {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.55));
+    border: 1px solid rgba(15, 23, 41, 0.08);
+    box-shadow:
+      0 8px 30px rgba(15, 23, 41, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
 
   /* Frosted form fields that sit on top of .glass-panel */
@@ -80,6 +126,13 @@
     box-shadow: 0 0 0 3px rgba(242, 181, 68, 0.18);
     background: rgba(255, 255, 255, 0.06);
     outline: none;
+  }
+  :root[data-theme="light"] .glass-input {
+    background: rgba(15, 23, 41, 0.03);
+    border: 1px solid rgba(15, 23, 41, 0.1);
+  }
+  :root[data-theme="light"] .glass-input:focus {
+    background: rgba(15, 23, 41, 0.05);
   }
 }
 

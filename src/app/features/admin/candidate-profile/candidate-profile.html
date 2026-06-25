@@ -1,0 +1,58 @@
+<div class="space-y-6">
+  <a routerLink="/admin/candidates" class="inline-flex items-center gap-1.5 text-sm text-frost/60 hover:text-signal transition">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+    Back to candidates
+  </a>
+
+  @if (loading()) {
+    <p class="text-sm text-frost/50">Loading…</p>
+  } @else if (loadError()) {
+    <p class="text-sm text-flag">{{ loadError() }}</p>
+  } @else if (candidate()) {
+    <div class="glass-panel rounded-2xl p-6 sm:p-8">
+      <div class="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="font-display text-2xl font-semibold tracking-tight">{{ candidate()!.fullName }}</h1>
+          <p class="mt-1 text-sm text-frost/60">{{ candidate()!.email }}</p>
+        </div>
+        @if (candidate()!.isInvitePending) {
+          <span class="inline-flex items-center rounded-full bg-signal/15 text-signal text-xs font-medium px-3 py-1.5">
+            Invite pending
+          </span>
+        } @else if (!candidate()!.isActive) {
+          <span class="inline-flex items-center rounded-full bg-flag/15 text-flag text-xs font-medium px-3 py-1.5">
+            Deactivated
+          </span>
+        } @else {
+          <span class="inline-flex items-center rounded-full bg-pass/15 text-pass text-xs font-medium px-3 py-1.5">
+            Active
+          </span>
+        }
+      </div>
+    </div>
+
+    <div class="glass-panel rounded-2xl p-6 sm:p-8">
+      <h2 class="font-display text-lg font-semibold tracking-tight mb-4">
+        Submissions ({{ candidate()!.submissions.length }})
+      </h2>
+
+      @if (candidate()!.submissions.length === 0) {
+        <p class="text-sm text-frost/50">No submissions yet.</p>
+      } @else {
+        <div class="space-y-3">
+          @for (s of candidate()!.submissions; track s.submissionId) {
+            <div class="flex items-center justify-between rounded-xl border border-frost/10 px-4 py-3">
+              <div>
+                <p class="text-sm font-medium">{{ s.assessmentTitle }}</p>
+                <p class="text-xs text-frost/45 mt-0.5">{{ s.status }} · {{ s.submittedAt | date: 'medium' }}</p>
+              </div>
+              <p class="text-sm font-semibold text-signal">{{ s.totalScore }} / {{ s.maxPossibleScore }}</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

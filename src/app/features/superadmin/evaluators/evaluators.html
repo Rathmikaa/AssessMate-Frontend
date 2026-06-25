@@ -1,0 +1,142 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl font-semibold tracking-tight">Evaluators</h1>
+      <p class="mt-1 text-sm text-frost/60">Manage who can build assessments and review candidate results.</p>
+    </div>
+    <button
+      type="button"
+      (click)="toggleCreateForm()"
+      class="rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 px-5 transition hover:bg-signal-dim"
+    >
+      {{ showCreateForm() ? 'Cancel' : '+ New Evaluator' }}
+    </button>
+  </div>
+
+  @if (banner()) {
+    @if (banner()!.kind === 'success') {
+      <div class="rounded-xl border border-pass/30 bg-pass/10 px-4 py-3 text-sm text-pass flex items-start justify-between gap-4">
+        <p>{{ banner()!.text }}</p>
+        <button type="button" (click)="dismissBanner()" class="text-pass/70 hover:text-pass shrink-0">✕</button>
+      </div>
+    } @else {
+      <div class="rounded-xl border border-flag/30 bg-flag/10 px-4 py-3 text-sm text-flag flex items-start justify-between gap-4">
+        <p>{{ banner()!.text }}</p>
+        <button type="button" (click)="dismissBanner()" class="text-flag/70 hover:text-flag shrink-0">✕</button>
+      </div>
+    }
+  }
+
+  @if (showCreateForm()) {
+    <div class="glass-panel rounded-2xl p-6">
+      <h2 class="font-display text-lg font-semibold tracking-tight mb-4">New evaluator</h2>
+
+      @if (createErrors().length) {
+        <div class="mb-4 rounded-xl border border-flag/30 bg-flag/10 px-4 py-3 text-sm text-flag">
+          @for (e of createErrors(); track e) {
+            <p>{{ e }}</p>
+          }
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submitCreate()" class="grid sm:grid-cols-3 gap-4">
+        <div>
+          <label for="fullName" class="block text-xs font-medium text-frost/60 mb-1.5">Full name</label>
+          <input
+            id="fullName"
+            type="text"
+            formControlName="fullName"
+            placeholder="Jane Doe"
+            class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition"
+          />
+          @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+            <p class="mt-1.5 text-xs text-flag">Required.</p>
+          }
+        </div>
+
+        <div>
+          <label for="newEvaluatorEmail" class="block text-xs font-medium text-frost/60 mb-1.5">Email</label>
+          <input
+            id="newEvaluatorEmail"
+            type="email"
+            formControlName="email"
+            placeholder="evaluator@company.com"
+            class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition"
+          />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <p class="mt-1.5 text-xs text-flag">Enter a valid email.</p>
+          }
+        </div>
+
+        <div>
+          <label for="newEvaluatorPassword" class="block text-xs font-medium text-frost/60 mb-1.5">Temporary password</label>
+          <input
+            id="newEvaluatorPassword"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition"
+          />
+          @if (form.controls.password.touched && form.controls.password.errors?.['minlength']) {
+            <p class="mt-1.5 text-xs text-flag">At least 8 characters.</p>
+          }
+        </div>
+
+        <div class="sm:col-span-3 flex justify-end gap-3 mt-1">
+          <button
+            type="button"
+            (click)="toggleCreateForm()"
+            class="rounded-xl px-5 py-2.5 text-sm font-medium text-frost/60 hover:text-frost transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            [disabled]="creating()"
+            class="rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 px-6 transition hover:bg-signal-dim disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ creating() ? 'Creating…' : 'Create evaluator' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="glass-panel rounded-2xl overflow-hidden">
+    @if (loadingList()) {
+      <p class="p-6 text-sm text-frost/50">Loading evaluators…</p>
+    } @else if (loadError()) {
+      <p class="p-6 text-sm text-flag">{{ loadError() }}</p>
+    } @else if (evaluators().length === 0) {
+      <p class="p-6 text-sm text-frost/50">No evaluators yet — create one above.</p>
+    } @else {
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-frost/10 text-left text-xs text-frost/45 uppercase tracking-wide">
+            <th class="px-5 py-3 font-medium">Name</th>
+            <th class="px-5 py-3 font-medium">Email</th>
+            <th class="px-5 py-3 font-medium text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of evaluators(); track e.id) {
+            <tr class="border-b border-frost/5 hover:bg-frost/5 transition">
+              <td class="px-5 py-3.5 font-medium">{{ e.fullName }}</td>
+              <td class="px-5 py-3.5 text-frost/60">{{ e.email }}</td>
+              <td class="px-5 py-3.5 text-right">
+                <button
+                  type="button"
+                  [disabled]="busyId() === e.id"
+                  (click)="remove(e)"
+                  class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-flag hover:bg-frost/5 transition disabled:opacity-40"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+</div>

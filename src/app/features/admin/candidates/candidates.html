@@ -1,0 +1,212 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl font-semibold tracking-tight">Candidates</h1>
+      <p class="mt-1 text-sm text-frost/60">Create candidate accounts, send assessment invites, and manage access.</p>
+    </div>
+    <button
+      type="button"
+      (click)="toggleCreateForm()"
+      class="rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 px-5 transition hover:bg-signal-dim"
+    >
+      {{ showCreateForm() ? 'Cancel' : '+ New Candidate' }}
+    </button>
+  </div>
+
+  @if (banner()) {
+    @if (banner()!.kind === 'success') {
+      <div class="rounded-xl border border-pass/30 bg-pass/10 px-4 py-3 text-sm text-pass flex items-start justify-between gap-4">
+        <div>
+          @for (line of banner()!.lines; track line) {
+            <p>{{ line }}</p>
+          }
+        </div>
+        <button type="button" (click)="dismissBanner()" class="text-pass/70 hover:text-pass shrink-0">✕</button>
+      </div>
+    } @else {
+      <div class="rounded-xl border border-flag/30 bg-flag/10 px-4 py-3 text-sm text-flag flex items-start justify-between gap-4">
+        <div>
+          @for (line of banner()!.lines; track line) {
+            <p>{{ line }}</p>
+          }
+        </div>
+        <button type="button" (click)="dismissBanner()" class="text-flag/70 hover:text-flag shrink-0">✕</button>
+      </div>
+    }
+  }
+
+  @if (showCreateForm()) {
+    <div class="glass-panel rounded-2xl p-6">
+      <h2 class="font-display text-lg font-semibold tracking-tight mb-4">New candidate</h2>
+
+      @if (createErrors().length) {
+        <div class="mb-4 rounded-xl border border-flag/30 bg-flag/10 px-4 py-3 text-sm text-flag">
+          @for (e of createErrors(); track e) {
+            <p>{{ e }}</p>
+          }
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submitCreate()" class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label for="fullName" class="block text-xs font-medium text-frost/60 mb-1.5">Full name</label>
+          <input
+            id="fullName"
+            type="text"
+            formControlName="fullName"
+            placeholder="Jane Doe"
+            class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition"
+          />
+          @if (form.controls.fullName.touched && form.controls.fullName.invalid) {
+            <p class="mt-1.5 text-xs text-flag">Full name is required.</p>
+          }
+        </div>
+
+        <div>
+          <label for="newCandidateEmail" class="block text-xs font-medium text-frost/60 mb-1.5">Email</label>
+          <input
+            id="newCandidateEmail"
+            type="email"
+            formControlName="email"
+            placeholder="candidate@email.com"
+            class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition"
+          />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <p class="mt-1.5 text-xs text-flag">Enter a valid email address.</p>
+          }
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="assessmentId" class="block text-xs font-medium text-frost/60 mb-1.5">
+            Invite to assessment <span class="text-frost/35">(optional)</span>
+          </label>
+          <select
+            id="assessmentId"
+            formControlName="assessmentId"
+            class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost outline-none transition"
+          >
+            <option [ngValue]="null">— No specific assessment —</option>
+            @for (a of activeAssessments(); track a.id) {
+              <option [ngValue]="a.id">{{ a.title }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="sm:col-span-2 flex justify-end gap-3 mt-1">
+          <button
+            type="button"
+            (click)="toggleCreateForm()"
+            class="rounded-xl px-5 py-2.5 text-sm font-medium text-frost/60 hover:text-frost transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            [disabled]="creating()"
+            class="rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 px-6 transition hover:bg-signal-dim disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ creating() ? 'Creating…' : 'Create & send invite' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="glass-panel rounded-2xl overflow-hidden">
+    @if (loadingList()) {
+      <p class="p-6 text-sm text-frost/50">Loading candidates…</p>
+    } @else if (loadError()) {
+      <p class="p-6 text-sm text-flag">{{ loadError() }}</p>
+    } @else if (candidates().length === 0) {
+      <p class="p-6 text-sm text-frost/50">No candidates yet — create one above to get started.</p>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-frost/10 text-left text-xs text-frost/45 uppercase tracking-wide">
+              <th class="px-5 py-3 font-medium">Name</th>
+              <th class="px-5 py-3 font-medium">Email</th>
+              <th class="px-5 py-3 font-medium">Status</th>
+              <th class="px-5 py-3 font-medium">Submissions</th>
+              <th class="px-5 py-3 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (c of candidates(); track c.id) {
+              <tr class="border-b border-frost/5 hover:bg-frost/5 transition">
+                <td class="px-5 py-3.5">
+                  <a [routerLink]="['/admin/candidates', c.id]" class="font-medium hover:text-signal transition">
+                    {{ c.fullName }}
+                  </a>
+                </td>
+                <td class="px-5 py-3.5 text-frost/60">{{ c.email }}</td>
+                <td class="px-5 py-3.5">
+                  @if (c.isInvitePending) {
+                    <span class="inline-flex items-center rounded-full bg-signal/15 text-signal text-xs font-medium px-2.5 py-1">
+                      Invite pending
+                    </span>
+                  } @else if (!c.isActive) {
+                    <span class="inline-flex items-center rounded-full bg-flag/15 text-flag text-xs font-medium px-2.5 py-1">
+                      Deactivated
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center rounded-full bg-pass/15 text-pass text-xs font-medium px-2.5 py-1">
+                      Active
+                    </span>
+                  }
+                </td>
+                <td class="px-5 py-3.5 text-frost/60">{{ c.submissionCount }}</td>
+                <td class="px-5 py-3.5">
+                  <div class="flex items-center justify-end gap-2 flex-wrap">
+                    @if (c.isInvitePending) {
+                      <button
+                        type="button"
+                        [disabled]="busyId() === c.id"
+                        (click)="resendInvite(c)"
+                        class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-signal hover:bg-frost/5 transition disabled:opacity-40"
+                      >
+                        Resend invite
+                      </button>
+                    } @else if (c.isActive) {
+                      <select #picker class="glass-input rounded-lg px-2 py-1.5 text-xs text-frost outline-none">
+                        <option value="">Invite to…</option>
+                        @for (a of activeAssessments(); track a.id) {
+                          <option [value]="a.id">{{ a.title }}</option>
+                        }
+                      </select>
+                      <button
+                        type="button"
+                        [disabled]="busyId() === c.id || !picker.value"
+                        (click)="inviteToAssessment(c, picker.value ? +picker.value : null)"
+                        class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-signal hover:bg-frost/5 transition disabled:opacity-40"
+                      >
+                        Send
+                      </button>
+                      <button
+                        type="button"
+                        [disabled]="busyId() === c.id"
+                        (click)="deactivate(c)"
+                        class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-flag hover:bg-frost/5 transition disabled:opacity-40"
+                      >
+                        Deactivate
+                      </button>
+                    } @else {
+                      <button
+                        type="button"
+                        [disabled]="busyId() === c.id"
+                        (click)="reactivate(c)"
+                        class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-pass hover:bg-frost/5 transition disabled:opacity-40"
+                      >
+                        Reactivate
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

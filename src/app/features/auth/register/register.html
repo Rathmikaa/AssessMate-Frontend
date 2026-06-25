@@ -1,5 +1,9 @@
 <app-ambient-background variant="hero" />
 
+<div class="fixed top-5 right-5 z-20">
+  <app-theme-toggle />
+</div>
+
 <div class="relative min-h-screen flex items-center justify-center px-6 py-16">
   <div class="w-full max-w-5xl grid lg:grid-cols-2 gap-12 items-center">
     <div class="hidden lg:flex flex-col gap-8 pr-6">
@@ -104,7 +108,7 @@
         <button
           type="submit"
           [disabled]="loading()"
-          class="w-full rounded-xl bg-signal text-ink font-semibold text-sm py-2.5 mt-2 transition hover:bg-signal-dim disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 mt-2 transition hover:bg-signal-dim disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {{ loading() ? 'Creating account…' : 'Create account' }}
         </button>

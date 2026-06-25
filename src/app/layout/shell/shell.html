@@ -46,6 +46,12 @@
               <path d="M22 2 11 13" />
               <path d="M22 2 15 22l-4-9-9-4 20-7z" />
             }
+            @case ('users') {
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            }
           }
         </svg>
         {{ item.label }}
@@ -61,6 +67,7 @@
       <p class="text-sm font-medium truncate">{{ user()?.fullName }}</p>
       <p class="text-xs text-frost/45">{{ user()?.role }}</p>
     </div>
+    <app-theme-toggle />
     <button
       type="button"
       (click)="logout()"
@@ -101,7 +108,7 @@
 
   <!-- Mobile drawer -->
   @if (mobileNavOpen()) {
-    <div class="lg:hidden fixed inset-0 z-40 bg-ink/70" (click)="closeMobileNav()">
+    <div class="lg:hidden fixed inset-0 z-40 bg-coal/70" (click)="closeMobileNav()">
       <aside class="glass-panel absolute left-3 top-3 bottom-3 w-64 rounded-3xl p-5 flex flex-col" (click)="$event.stopPropagation()">
         <ng-container [ngTemplateOutlet]="navContent" />
       </aside>

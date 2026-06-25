@@ -8,7 +8,7 @@ import { Shell } from './layout/shell/shell';
 import { PlaceholderPage } from './shared/components/placeholder-page/placeholder-page';
 
 /** '/' has no inherent meaning once you're signed in — send the user to
- *  their own role's dashboard rather than guessing Admin vs Candidate. */
+ *  their own role's dashboard rather than guessing. */
 const roleHomeRedirect: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
@@ -26,23 +26,58 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register').then((m) => m.Register),
   },
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password').then((m) => m.ResetPassword),
+  },
+  {
+    // Reached from an admin-created candidate's invite email.
+    path: 'set-password',
+    loadComponent: () => import('./features/auth/set-password/set-password').then((m) => m.SetPassword),
+  },
+  {
     path: '',
     component: Shell,
     canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', canActivate: [roleHomeRedirect], children: [] },
 
-      // ── Admin ────────────────────────────────────────────────
+      // ── SuperAdmin ───────────────────────────────────────────
+      // Manages Evaluator accounts only — does NOT inherit Evaluator's
+      // own permissions (the backend authorizes them as separate roles).
+      {
+        path: 'superadmin',
+        canActivate: [roleGuard],
+        data: { role: 'SuperAdmin' },
+        children: [
+          {
+            path: 'evaluators',
+            loadComponent: () =>
+              import('./features/superadmin/evaluators/evaluators').then((m) => m.Evaluators),
+          },
+        ],
+      },
+
+      // ── Evaluator ────────────────────────────────────────────
+      // URL segment stays "admin" to match the backend's own routes
+      // (api/admin/...) even though the role itself is now "Evaluator",
+      // not "Admin" — the backend made the same choice, not renaming the
+      // route, only the role requirement on it.
       {
         path: 'admin',
         canActivate: [roleGuard],
-        data: { role: 'Admin' },
+        data: { role: 'Evaluator' },
         children: [
           {
             path: 'dashboard',
             component: PlaceholderPage,
             data: {
-              title: 'Admin dashboard',
+              title: 'Evaluator dashboard',
               description: 'Assessment volume, recent submissions, and at-a-glance candidate progress will live here.',
             },
           },
@@ -61,6 +96,18 @@ export const routes: Routes = [
               title: 'Questions',
               description: 'Manage the question bank per assessment — backed by api/admin/questions.',
             },
+          },
+          {
+            path: 'candidates',
+            loadComponent: () =>
+              import('./features/admin/candidates/candidates').then((m) => m.Candidates),
+          },
+          {
+            path: 'candidates/:id',
+            loadComponent: () =>
+              import('./features/admin/candidate-profile/candidate-profile').then(
+                (m) => m.CandidateProfile,
+              ),
           },
           {
             path: 'results',

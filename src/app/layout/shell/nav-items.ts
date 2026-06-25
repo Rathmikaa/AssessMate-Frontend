@@ -11,7 +11,6 @@ export const NAV_ITEMS: Record<AppRole, NavItem[]> = {
   Evaluator: [
     { label: 'Dashboard', route: '/admin/dashboard', icon: 'grid' },
     { label: 'Assessments', route: '/admin/assessments', icon: 'doc' },
-    { label: 'Questions', route: '/admin/questions', icon: 'help' },
     { label: 'Candidates', route: '/admin/candidates', icon: 'users' },
     { label: 'Results', route: '/admin/results', icon: 'chart' },
   ],

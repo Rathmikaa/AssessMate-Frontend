@@ -48,8 +48,6 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', canActivate: [roleHomeRedirect], children: [] },
 
       // ── SuperAdmin ───────────────────────────────────────────
-      // Manages Evaluator accounts only — does NOT inherit Evaluator's
-      // own permissions (the backend authorizes them as separate roles).
       {
         path: 'superadmin',
         canActivate: [roleGuard],
@@ -65,9 +63,7 @@ export const routes: Routes = [
 
       // ── Evaluator ────────────────────────────────────────────
       // URL segment stays "admin" to match the backend's own routes
-      // (api/admin/...) even though the role itself is now "Evaluator",
-      // not "Admin" — the backend made the same choice, not renaming the
-      // route, only the role requirement on it.
+      // (api/admin/...) even though the role is "Evaluator", not "Admin".
       {
         path: 'admin',
         canActivate: [roleGuard],
@@ -83,19 +79,12 @@ export const routes: Routes = [
           },
           {
             path: 'assessments',
-            component: PlaceholderPage,
-            data: {
-              title: 'Assessments',
-              description: 'Create, edit, and publish assessments — backed by GET/POST/PUT/DELETE on api/admin/assessments.',
-            },
+            loadComponent: () =>
+              import('./features/admin/assessments/assessments').then((m) => m.Assessments),
           },
           {
-            path: 'questions',
-            component: PlaceholderPage,
-            data: {
-              title: 'Questions',
-              description: 'Manage the question bank per assessment — backed by api/admin/questions.',
-            },
+            path: 'assessments/:id/questions',
+            loadComponent: () => import('./features/admin/questions/questions').then((m) => m.Questions),
           },
           {
             path: 'candidates',

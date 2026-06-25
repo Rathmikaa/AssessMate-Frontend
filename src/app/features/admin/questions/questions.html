@@ -1,0 +1,222 @@
+<div class="space-y-6">
+  <a routerLink="/admin/assessments" class="inline-flex items-center gap-1.5 text-sm text-frost/60 hover:text-signal transition">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+    Back to assessments
+  </a>
+
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="font-display text-2xl font-semibold tracking-tight">
+        Questions
+        @if (assessment()) {
+          <span class="text-frost/50">— {{ assessment()!.title }}</span>
+        }
+      </h1>
+      <p class="mt-1 text-sm text-frost/60">{{ questions().length }} question(s).</p>
+    </div>
+    <button
+      type="button"
+      (click)="openCreateForm()"
+      class="rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 px-5 transition hover:bg-signal-dim"
+    >
+      + New Question
+    </button>
+  </div>
+
+  @if (banner()) {
+    @if (banner()!.kind === 'success') {
+      <div class="rounded-xl border border-pass/30 bg-pass/10 px-4 py-3 text-sm text-pass flex items-start justify-between gap-4">
+        <p>{{ banner()!.text }}</p>
+        <button type="button" (click)="dismissBanner()" class="text-pass/70 hover:text-pass shrink-0">✕</button>
+      </div>
+    } @else {
+      <div class="rounded-xl border border-flag/30 bg-flag/10 px-4 py-3 text-sm text-flag flex items-start justify-between gap-4">
+        <p>{{ banner()!.text }}</p>
+        <button type="button" (click)="dismissBanner()" class="text-flag/70 hover:text-flag shrink-0">✕</button>
+      </div>
+    }
+  }
+
+  @if (showForm()) {
+    <div class="glass-panel rounded-2xl p-6">
+      <h2 class="font-display text-lg font-semibold tracking-tight mb-4">
+        {{ editingId() ? 'Edit question' : 'New question' }}
+      </h2>
+
+      @if (formErrors().length) {
+        <div class="mb-4 rounded-xl border border-flag/30 bg-flag/10 px-4 py-3 text-sm text-flag">
+          @for (e of formErrors(); track e) {
+            <p>{{ e }}</p>
+          }
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+        <div class="grid sm:grid-cols-3 gap-4">
+          <div class="sm:col-span-2">
+            <label for="questionType" class="block text-xs font-medium text-frost/60 mb-1.5">Type</label>
+            <select
+              id="questionType"
+              formControlName="questionType"
+              class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost outline-none transition"
+            >
+              <option value="MCQ">Multiple choice</option>
+              <option value="Descriptive">Descriptive</option>
+            </select>
+          </div>
+          <div>
+            <label for="maxMarks" class="block text-xs font-medium text-frost/60 mb-1.5">Max marks</label>
+            <input
+              id="maxMarks"
+              type="number"
+              formControlName="maxMarks"
+              class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost outline-none transition"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label for="questionText" class="block text-xs font-medium text-frost/60 mb-1.5">Question</label>
+          <textarea
+            id="questionText"
+            formControlName="questionText"
+            rows="2"
+            placeholder="What does the 'S' in SOLID stand for?"
+            class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition resize-none"
+          ></textarea>
+          @if (form.controls.questionText.touched && form.controls.questionText.invalid) {
+            <p class="mt-1.5 text-xs text-flag">Question text is required.</p>
+          }
+        </div>
+
+        @if (form.controls.questionType.value === 'MCQ') {
+          <div formArrayName="options" class="space-y-2">
+            <label class="block text-xs font-medium text-frost/60 mb-1.5">
+              Options <span class="text-frost/35">(select the correct one)</span>
+            </label>
+            @for (control of optionControls; track $index) {
+              <div class="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name="correctOption"
+                  [checked]="form.controls.correctOptionIndex.value === $index"
+                  (change)="form.controls.correctOptionIndex.setValue($index)"
+                  class="accent-signal shrink-0"
+                />
+                <input
+                  type="text"
+                  [formControlName]="$index"
+                  [placeholder]="'Option ' + ($index + 1)"
+                  class="glass-input flex-1 rounded-xl px-4 py-2 text-sm text-frost placeholder:text-frost/30 outline-none transition"
+                />
+                @if (optionControls.length > 2) {
+                  <button
+                    type="button"
+                    (click)="removeOption($index)"
+                    class="text-frost/40 hover:text-flag transition shrink-0 px-1"
+                  >
+                    ✕
+                  </button>
+                }
+              </div>
+            }
+            <button type="button" (click)="addOption()" class="text-xs text-signal hover:underline font-medium mt-1">
+              + Add option
+            </button>
+          </div>
+        } @else {
+          <div>
+            <label for="modelAnswer" class="block text-xs font-medium text-frost/60 mb-1.5">Model answer</label>
+            <textarea
+              id="modelAnswer"
+              formControlName="modelAnswer"
+              rows="3"
+              placeholder="The reference answer used to score candidate responses."
+              class="glass-input w-full rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition resize-none"
+            ></textarea>
+            <p class="mt-1.5 text-xs text-frost/40">Candidate answers are scored by keyword match against this.</p>
+          </div>
+        }
+
+        <div class="flex justify-end gap-3 pt-1">
+          <button
+            type="button"
+            (click)="closeForm()"
+            class="rounded-xl px-5 py-2.5 text-sm font-medium text-frost/60 hover:text-frost transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving()"
+            class="rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 px-6 transition hover:bg-signal-dim disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Add question' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <div class="glass-panel rounded-2xl overflow-hidden">
+    @if (loadingList()) {
+      <p class="p-6 text-sm text-frost/50">Loading questions…</p>
+    } @else if (loadError()) {
+      <p class="p-6 text-sm text-flag">{{ loadError() }}</p>
+    } @else if (questions().length === 0) {
+      <p class="p-6 text-sm text-frost/50">No questions yet — add one above.</p>
+    } @else {
+      <div class="divide-y divide-frost/5">
+        @for (q of questions(); track q.id) {
+          <div class="p-5 flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 mb-1.5">
+                <span class="inline-flex items-center rounded-full bg-signal/15 text-signal text-xs font-medium px-2.5 py-1">
+                  {{ q.questionType }}
+                </span>
+                <span class="text-xs text-frost/45">{{ q.maxMarks }} mark(s)</span>
+              </div>
+              <p class="text-sm font-medium">{{ q.questionText }}</p>
+
+              @if (q.questionType === 'MCQ') {
+                <ul class="mt-2 space-y-1">
+                  @for (o of q.options; track o.id) {
+                    <li class="text-xs flex items-center gap-1.5" [class.text-pass]="o.isCorrect" [class.text-frost/50]="!o.isCorrect">
+                      @if (o.isCorrect) {
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M4 12l5 5L20 6" />
+                        </svg>
+                      }
+                      {{ o.optionText }}
+                    </li>
+                  }
+                </ul>
+              } @else if (q.modelAnswer) {
+                <p class="mt-2 text-xs text-frost/45 line-clamp-2">Model answer: {{ q.modelAnswer }}</p>
+              }
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                (click)="openEditForm(q)"
+                class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-signal hover:bg-frost/5 transition"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                [disabled]="busyId() === q.id"
+                (click)="remove(q)"
+                class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-flag hover:bg-frost/5 transition disabled:opacity-40"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

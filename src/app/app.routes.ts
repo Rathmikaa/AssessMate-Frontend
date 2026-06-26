@@ -47,7 +47,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', canActivate: [roleHomeRedirect], children: [] },
 
-      // ── SuperAdmin ───────────────────────────────────────────
+      // SuperAdmin 
       {
         path: 'superadmin',
         canActivate: [roleGuard],
@@ -61,7 +61,7 @@ export const routes: Routes = [
         ],
       },
 
-      // ── Evaluator ────────────────────────────────────────────
+      //  Evaluator
       // URL segment stays "admin" to match the backend's own routes
       // (api/admin/...) even though the role is "Evaluator", not "Admin".
       {
@@ -109,7 +109,7 @@ export const routes: Routes = [
         ],
       },
 
-      // ── Candidate ────────────────────────────────────────────
+      //Candidate 
       {
         path: 'candidate',
         canActivate: [roleGuard],

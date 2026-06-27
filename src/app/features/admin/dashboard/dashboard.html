@@ -1,0 +1,111 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-semibold tracking-tight">Evaluator Dashboard</h1>
+    <p class="mt-1 text-sm text-frost/60">An overview of assessments, candidates, and activity.</p>
+  </div>
+
+  @if (loading()) {
+    <p class="text-sm text-frost/50">Loading…</p>
+  } @else if (loadError()) {
+    <p class="text-sm text-flag">{{ loadError() }}</p>
+  } @else {
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="glass-panel rounded-2xl p-5">
+        <p class="text-xs text-frost/45 uppercase tracking-wide">Assessments</p>
+        <p class="mt-2 font-display text-3xl font-semibold">{{ assessmentCount() }}</p>
+        <a routerLink="/admin/assessments" class="mt-2 inline-block text-xs text-signal hover:underline font-medium">
+          Manage →
+        </a>
+      </div>
+      <div class="glass-panel rounded-2xl p-5">
+        <p class="text-xs text-frost/45 uppercase tracking-wide">Candidates</p>
+        <p class="mt-2 font-display text-3xl font-semibold">{{ candidateCount() }}</p>
+        <a routerLink="/admin/candidates" class="mt-2 inline-block text-xs text-signal hover:underline font-medium">
+          Manage →
+        </a>
+      </div>
+      <div class="glass-panel rounded-2xl p-5">
+        <p class="text-xs text-frost/45 uppercase tracking-wide">Submissions</p>
+        <p class="mt-2 font-display text-3xl font-semibold">{{ submissionCount() }}</p>
+        <a routerLink="/admin/results" class="mt-2 inline-block text-xs text-signal hover:underline font-medium">
+          View all →
+        </a>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-4">
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display text-lg font-semibold tracking-tight">Live activity</h2>
+          <span
+            class="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full"
+            [class.bg-pass/15]="monitor.connectionState() === 'connected'"
+            [class.text-pass]="monitor.connectionState() === 'connected'"
+            [class.bg-frost/10]="monitor.connectionState() !== 'connected'"
+            [class.text-frost/50]="monitor.connectionState() !== 'connected'"
+          >
+            <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
+            {{
+              monitor.connectionState() === 'connected'
+                ? 'Live'
+                : monitor.connectionState() === 'connecting'
+                  ? 'Connecting…'
+                  : 'Offline'
+            }}
+          </span>
+        </div>
+
+        @if (monitor.events().length === 0) {
+          <p class="text-sm text-frost/45">Waiting for candidate activity…</p>
+        } @else {
+          <div class="space-y-2 max-h-80 overflow-y-auto">
+            @for (e of monitor.events(); track e.at + e.candidateId + e.type) {
+              <div class="flex items-center gap-3 text-sm rounded-xl border border-frost/10 px-3 py-2.5">
+                <span
+                  class="h-2 w-2 rounded-full shrink-0"
+                  [class.bg-signal]="e.type === 'CandidateStarted'"
+                  [class.bg-pass]="e.type === 'CandidateSubmitted'"
+                ></span>
+                <p class="flex-1 min-w-0 truncate">
+                  <span class="font-medium">{{ e.candidateName }}</span>
+                  <span class="text-frost/50"> {{ e.type === 'CandidateStarted' ? 'started' : 'submitted' }} </span>
+                  <span class="font-medium">{{ e.assessmentTitle }}</span>
+                  @if (e.type === 'CandidateSubmitted') {
+                    <span class="text-signal"> — {{ e.score }}/{{ e.maxScore }}</span>
+                  }
+                </p>
+                <span class="text-xs text-frost/35 shrink-0">{{ e.at | date: 'shortTime' }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display text-lg font-semibold tracking-tight">Recent results</h2>
+          <a routerLink="/admin/results" class="text-xs text-signal hover:underline font-medium">View all →</a>
+        </div>
+
+        @if (recentResults().length === 0) {
+          <p class="text-sm text-frost/45">No submissions yet.</p>
+        } @else {
+          <div class="space-y-2">
+            @for (r of recentResults(); track r.submissionId) {
+              <a
+                [routerLink]="['/admin/results', r.submissionId]"
+                class="flex items-center justify-between gap-3 text-sm rounded-xl px-3 py-2.5 hover:bg-frost/5 transition"
+              >
+                <div class="min-w-0">
+                  <p class="font-medium truncate">{{ r.candidateName }}</p>
+                  <p class="text-xs text-frost/45 truncate">{{ r.assessmentTitle }}</p>
+                </div>
+                <span class="text-signal font-semibold shrink-0">{{ r.totalScore }}/{{ r.maxPossibleScore }}</span>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

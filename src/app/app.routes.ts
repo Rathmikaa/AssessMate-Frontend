@@ -47,7 +47,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', canActivate: [roleHomeRedirect], children: [] },
 
-      // SuperAdmin 
+      //  SuperAdmin
       {
         path: 'superadmin',
         canActivate: [roleGuard],
@@ -61,7 +61,7 @@ export const routes: Routes = [
         ],
       },
 
-      //  Evaluator
+      //  Evaluator 
       // URL segment stays "admin" to match the backend's own routes
       // (api/admin/...) even though the role is "Evaluator", not "Admin".
       {
@@ -71,11 +71,8 @@ export const routes: Routes = [
         children: [
           {
             path: 'dashboard',
-            component: PlaceholderPage,
-            data: {
-              title: 'Evaluator dashboard',
-              description: 'Assessment volume, recent submissions, and at-a-glance candidate progress will live here.',
-            },
+            loadComponent: () =>
+              import('./features/admin/dashboard/dashboard').then((m) => m.EvaluatorDashboard),
           },
           {
             path: 'assessments',
@@ -100,16 +97,17 @@ export const routes: Routes = [
           },
           {
             path: 'results',
-            component: PlaceholderPage,
-            data: {
-              title: 'Results',
-              description: 'Review graded submissions across all candidates — backed by api/admin/results.',
-            },
+            loadComponent: () => import('./features/admin/results/results').then((m) => m.Results),
+          },
+          {
+            path: 'results/:submissionId',
+            loadComponent: () =>
+              import('./features/admin/result-detail/result-detail').then((m) => m.AdminResultDetail),
           },
         ],
       },
 
-      //Candidate 
+      //Candidate
       {
         path: 'candidate',
         canActivate: [roleGuard],
@@ -125,27 +123,23 @@ export const routes: Routes = [
           },
           {
             path: 'assessments',
-            component: PlaceholderPage,
-            data: {
-              title: 'My assessments',
-              description: 'Assessments assigned to you — backed by api/candidate/assessments.',
-            },
+            loadComponent: () =>
+              import('./features/candidate/my-assessments/my-assessments').then((m) => m.CandidateAssessments),
           },
           {
-            path: 'submissions',
-            component: PlaceholderPage,
-            data: {
-              title: 'Submissions',
-              description: 'The in-progress test-taking flow will live here — backed by api/candidate/submissions.',
-            },
+            path: 'assessments/:id',
+            loadComponent: () =>
+              import('./features/candidate/take-assessment/take-assessment').then((m) => m.TakeAssessment),
           },
           {
             path: 'results',
-            component: PlaceholderPage,
-            data: {
-              title: 'My results',
-              description: 'Your scored submissions — backed by api/candidate/results.',
-            },
+            loadComponent: () =>
+              import('./features/candidate/my-results/my-results').then((m) => m.MyResults),
+          },
+          {
+            path: 'results/:submissionId',
+            loadComponent: () =>
+              import('./features/candidate/result-detail/result-detail').then((m) => m.ResultDetail),
           },
         ],
       },

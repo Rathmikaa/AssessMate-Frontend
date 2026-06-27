@@ -1,1 +1,148 @@
-<p>take-assessment works!</p>
+@if (loading()) {
+  <div class="flex items-center justify-center min-h-[50vh]">
+    <p class="text-sm text-frost/50">Loading assessment…</p>
+  </div>
+} @else if (loadError()) {
+  <div class="text-center py-12">
+    <p class="text-sm text-flag">{{ loadError() }}</p>
+    <a routerLink="/candidate/assessments" class="mt-4 inline-block text-sm text-signal hover:underline font-medium">
+      Back to assessments
+    </a>
+  </div>
+} @else if (result()) {
+  <div class="max-w-md mx-auto text-center py-12">
+    <div class="mx-auto h-14 w-14 rounded-full bg-pass/15 text-pass flex items-center justify-center mb-5">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 12l5 5L20 6" />
+      </svg>
+    </div>
+    <h2 class="font-display text-2xl font-semibold tracking-tight">Submitted</h2>
+    <p class="mt-2 text-sm text-frost/60">
+      Your score:
+      <span class="text-signal font-semibold">{{ result()!.totalScore }} / {{ result()!.maxPossibleScore }}</span>
+    </p>
+    <a
+      routerLink="/candidate/results"
+      class="mt-7 inline-block rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 px-6 transition hover:bg-signal-dim"
+    >
+      View my results
+    </a>
+  </div>
+} @else if (assessment() && currentQuestion()) {
+  <div class="space-y-5">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <h1 class="font-display text-xl font-semibold tracking-tight">{{ assessment()!.title }}</h1>
+        <p class="mt-1 text-xs text-frost/50">{{ answeredCount() }} / {{ assessment()!.questions.length }} answered</p>
+      </div>
+      <div
+        class="rounded-xl px-4 py-2 text-sm font-mono font-semibold"
+        [class.bg-flag/15]="secondsRemaining() < 60"
+        [class.text-flag]="secondsRemaining() < 60"
+        [class.bg-signal/15]="secondsRemaining() >= 60"
+        [class.text-signal]="secondsRemaining() >= 60"
+      >
+        {{ formattedTime() }}
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.5 flex-wrap">
+      @for (q of assessment()!.questions; track q.id) {
+        <button
+          type="button"
+          (click)="goTo($index)"
+          class="h-8 w-8 rounded-lg text-xs font-medium transition"
+          [class.bg-signal]="$index === currentIndex()"
+          [class.text-coal]="$index === currentIndex()"
+          [class.bg-pass/15]="$index !== currentIndex() && isAnswered(q.id)"
+          [class.text-pass]="$index !== currentIndex() && isAnswered(q.id)"
+          [class.bg-frost/5]="$index !== currentIndex() && !isAnswered(q.id)"
+          [class.text-frost/50]="$index !== currentIndex() && !isAnswered(q.id)"
+        >
+          {{ $index + 1 }}
+        </button>
+      }
+    </div>
+
+    @if (submitError().length) {
+      <div class="rounded-xl border border-flag/30 bg-flag/10 px-4 py-3 text-sm text-flag">
+        @for (e of submitError(); track e) {
+          <p>{{ e }}</p>
+        }
+      </div>
+    }
+
+    <div class="glass-panel rounded-2xl p-6 sm:p-8">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="inline-flex items-center rounded-full bg-signal/15 text-signal text-xs font-medium px-2.5 py-1">
+          Question {{ currentIndex() + 1 }} of {{ assessment()!.questions.length }}
+        </span>
+        <span class="text-xs text-frost/45">{{ currentQuestion()!.maxMarks }} mark(s)</span>
+      </div>
+
+      <p class="text-base font-medium leading-relaxed">{{ currentQuestion()!.questionText }}</p>
+
+      @if (currentQuestion()!.questionType === 'MCQ') {
+        <div class="mt-5 space-y-2">
+          @for (o of currentQuestion()!.options ?? []; track o.id) {
+            <label
+              class="flex items-center gap-3 rounded-xl border px-4 py-3 cursor-pointer transition"
+              [class.border-signal]="answers()[currentQuestion()!.id]?.selectedOptionId === o.id"
+              [class.bg-signal/5]="answers()[currentQuestion()!.id]?.selectedOptionId === o.id"
+              [class.border-frost/10]="answers()[currentQuestion()!.id]?.selectedOptionId !== o.id"
+            >
+              <input
+                type="radio"
+                [name]="'q-' + currentQuestion()!.id"
+                [checked]="answers()[currentQuestion()!.id]?.selectedOptionId === o.id"
+                (change)="selectOption(currentQuestion()!.id, o.id)"
+                class="accent-signal shrink-0"
+              />
+              <span class="text-sm">{{ o.optionText }}</span>
+            </label>
+          }
+        </div>
+      } @else {
+        <textarea
+          rows="6"
+          [value]="answers()[currentQuestion()!.id]?.answerText ?? ''"
+          (input)="setAnswerText(currentQuestion()!.id, $any($event.target).value)"
+          placeholder="Type your answer here…"
+          class="mt-5 glass-input w-full rounded-xl px-4 py-3 text-sm text-frost placeholder:text-frost/30 outline-none transition resize-none"
+        ></textarea>
+      }
+    </div>
+
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <button
+        type="button"
+        [disabled]="currentIndex() === 0"
+        (click)="previous()"
+        class="rounded-xl px-5 py-2.5 text-sm font-medium text-frost/60 hover:text-frost transition disabled:opacity-30"
+      >
+        ← Previous
+      </button>
+
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          [disabled]="submitting()"
+          (click)="confirmSubmit()"
+          class="rounded-xl border border-flag/30 text-flag font-semibold text-sm py-2.5 px-5 transition hover:bg-flag/10 disabled:opacity-50"
+        >
+          {{ submitting() ? 'Submitting…' : 'Submit assessment' }}
+        </button>
+
+        @if (currentIndex() < assessment()!.questions.length - 1) {
+          <button
+            type="button"
+            (click)="next()"
+            class="rounded-xl bg-signal text-coal font-semibold text-sm py-2.5 px-5 transition hover:bg-signal-dim"
+          >
+            Next →
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

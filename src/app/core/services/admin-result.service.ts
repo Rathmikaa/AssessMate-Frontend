@@ -4,27 +4,24 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { API_BASE_URL } from '../constants/api.constants';
 import { ApiFailure, ApiResponse } from '../models/api-response.model';
-import { AssessmentDetail, AssessmentSummary } from '../models/assessment.model';
+import { SubmissionDetail, SubmissionSummary } from '../models/submission.model';
 
-/** Separate from AssessmentService (which hits /api/admin/assessments) —
- *  different route, different role, even though the response shapes
- *  happen to be the literal same backend DTOs. */
 @Injectable({ providedIn: 'root' })
-export class CandidateAssessmentService {
+export class AdminResultService {
   constructor(private readonly http: HttpClient) {}
 
-  getAllActive(): Observable<AssessmentSummary[]> {
+  getAll(): Observable<SubmissionSummary[]> {
     return this.http
-      .get<ApiResponse<AssessmentSummary[]>>(`${API_BASE_URL}/candidate/assessments`)
+      .get<ApiResponse<SubmissionSummary[]>>(`${API_BASE_URL}/admin/results`)
       .pipe(
         map((res) => res.body ?? []),
         catchError((err) => this.toFailure(err)),
       );
   }
 
-  getById(id: number): Observable<AssessmentDetail> {
+  getDetail(submissionId: number): Observable<SubmissionDetail> {
     return this.http
-      .get<ApiResponse<AssessmentDetail>>(`${API_BASE_URL}/candidate/assessments/${id}`)
+      .get<ApiResponse<SubmissionDetail>>(`${API_BASE_URL}/admin/results/${submissionId}`)
       .pipe(
         map((res) => this.unwrap(res)),
         catchError((err) => this.toFailure(err)),

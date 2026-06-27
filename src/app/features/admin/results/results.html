@@ -1,0 +1,52 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-semibold tracking-tight">Results</h1>
+    <p class="mt-1 text-sm text-frost/60">Every submission across all candidates.</p>
+  </div>
+
+  <div class="glass-panel rounded-2xl overflow-hidden">
+    @if (loading()) {
+      <p class="p-6 text-sm text-frost/50">Loading…</p>
+    } @else if (loadError()) {
+      <p class="p-6 text-sm text-flag">{{ loadError() }}</p>
+    } @else if (results().length === 0) {
+      <p class="p-6 text-sm text-frost/50">No submissions yet.</p>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-frost/10 text-left text-xs text-frost/45 uppercase tracking-wide">
+              <th class="px-5 py-3 font-medium">Candidate</th>
+              <th class="px-5 py-3 font-medium">Assessment</th>
+              <th class="px-5 py-3 font-medium">Submitted</th>
+              <th class="px-5 py-3 font-medium">Score</th>
+              <th class="px-5 py-3 font-medium text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of results(); track r.submissionId) {
+              <tr class="border-b border-frost/5 hover:bg-frost/5 transition">
+                <td class="px-5 py-3.5">
+                  <p class="font-medium">{{ r.candidateName || '—' }}</p>
+                  <p class="text-xs text-frost/45 mt-0.5">{{ r.candidateEmail }}</p>
+                </td>
+                <td class="px-5 py-3.5 text-frost/70">{{ r.assessmentTitle }}</td>
+                <td class="px-5 py-3.5 text-frost/60">{{ r.submittedAt | date: 'medium' }}</td>
+                <td class="px-5 py-3.5 font-semibold text-signal">{{ r.totalScore }} / {{ r.maxPossibleScore }}</td>
+                <td class="px-5 py-3.5 text-right">
+                  <a
+                    [routerLink]="['/admin/results', r.submissionId]"
+                    [state]="{ candidateName: r.candidateName, candidateEmail: r.candidateEmail }"
+                    class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-signal hover:bg-frost/5 transition"
+                  >
+                    View
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

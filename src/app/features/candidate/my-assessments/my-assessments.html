@@ -1,1 +1,47 @@
-<p>my-assessments works!</p>
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-semibold tracking-tight">My Assessments</h1>
+    <p class="mt-1 text-sm text-frost/60">Assessments currently available to you.</p>
+  </div>
+
+  @if (loading()) {
+    <p class="text-sm text-frost/50">Loading…</p>
+  } @else if (loadError()) {
+    <p class="text-sm text-flag">{{ loadError() }}</p>
+  } @else if (assessments().length === 0) {
+    <div class="glass-panel rounded-2xl p-6">
+      <p class="text-sm text-frost/50">No assessments are available right now — check back later.</p>
+    </div>
+  } @else {
+    <div class="grid sm:grid-cols-2 gap-4">
+      @for (a of assessments(); track a.id) {
+        <div class="glass-panel rounded-2xl p-5 flex flex-col">
+          <h2 class="font-display text-lg font-semibold tracking-tight">{{ a.title }}</h2>
+          @if (a.description) {
+            <p class="mt-1 text-sm text-frost/60 line-clamp-2">{{ a.description }}</p>
+          }
+          <div class="mt-3 flex items-center gap-3 text-xs text-frost/45">
+            <span>{{ a.durationMinutes }} min</span>
+            <span>·</span>
+            <span>{{ a.questionCount }} question(s)</span>
+          </div>
+
+          <div class="mt-4 pt-4 border-t border-frost/10">
+            @if (isCompleted(a)) {
+              <span class="inline-flex items-center rounded-full bg-pass/15 text-pass text-xs font-medium px-3 py-1.5">
+                Completed
+              </span>
+            } @else {
+              <a
+                [routerLink]="['/candidate/assessments', a.id]"
+                class="inline-block rounded-xl bg-signal text-coal font-semibold text-sm py-2 px-5 transition hover:bg-signal-dim"
+              >
+                Start
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

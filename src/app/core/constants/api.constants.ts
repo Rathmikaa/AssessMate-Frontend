@@ -10,3 +10,8 @@
  * `dotnet dev-certs https --trust`).
  */
 export const API_BASE_URL = 'https://localhost:7171/api';
+
+/** Same origin as API_BASE_URL, without the /api suffix — used for the
+ *  SignalR hub, which Program.cs maps at the root (/hubs/...), not
+ *  under /api like every REST endpoint. */
+export const API_ORIGIN = API_BASE_URL.replace(/\/api$/, '');

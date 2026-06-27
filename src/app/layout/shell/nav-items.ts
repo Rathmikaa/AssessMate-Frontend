@@ -17,7 +17,6 @@ export const NAV_ITEMS: Record<AppRole, NavItem[]> = {
   Candidate: [
     { label: 'Dashboard', route: '/candidate/dashboard', icon: 'grid' },
     { label: 'My Assessments', route: '/candidate/assessments', icon: 'doc' },
-    { label: 'Submissions', route: '/candidate/submissions', icon: 'send' },
     { label: 'My Results', route: '/candidate/results', icon: 'chart' },
   ],
 };

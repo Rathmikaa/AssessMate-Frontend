@@ -5,7 +5,6 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { AuthService } from './core/services/auth.service';
 import { Shell } from './layout/shell/shell';
-import { PlaceholderPage } from './shared/components/placeholder-page/placeholder-page';
 
 /** '/' has no inherent meaning once you're signed in — send the user to
  *  their own role's dashboard rather than guessing. */
@@ -47,7 +46,7 @@ export const routes: Routes = [
     children: [
       { path: '', pathMatch: 'full', canActivate: [roleHomeRedirect], children: [] },
 
-      //  SuperAdmin
+      // ── SuperAdmin ───────────────────────────────────────────
       {
         path: 'superadmin',
         canActivate: [roleGuard],
@@ -61,7 +60,7 @@ export const routes: Routes = [
         ],
       },
 
-      //  Evaluator 
+      // ── Evaluator ────────────────────────────────────────────
       // URL segment stays "admin" to match the backend's own routes
       // (api/admin/...) even though the role is "Evaluator", not "Admin".
       {
@@ -107,7 +106,7 @@ export const routes: Routes = [
         ],
       },
 
-      //Candidate
+      // ── Candidate ────────────────────────────────────────────
       {
         path: 'candidate',
         canActivate: [roleGuard],
@@ -115,11 +114,8 @@ export const routes: Routes = [
         children: [
           {
             path: 'dashboard',
-            component: PlaceholderPage,
-            data: {
-              title: 'Your dashboard',
-              description: 'Upcoming and completed assessments will be summarized here.',
-            },
+            loadComponent: () =>
+              import('./features/candidate/dashboard/dashboard').then((m) => m.CandidateDashboard),
           },
           {
             path: 'assessments',

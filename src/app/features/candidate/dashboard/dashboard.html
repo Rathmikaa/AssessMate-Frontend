@@ -1,0 +1,90 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="font-display text-2xl font-semibold tracking-tight">Your Dashboard</h1>
+    <p class="mt-1 text-sm text-frost/60">A quick look at what's waiting and how you've done so far.</p>
+  </div>
+
+  @if (loading()) {
+    <p class="text-sm text-frost/50">Loading…</p>
+  } @else if (loadError()) {
+    <p class="text-sm text-flag">{{ loadError() }}</p>
+  } @else {
+    <div class="grid sm:grid-cols-3 gap-4">
+      <div class="glass-panel rounded-2xl p-5">
+        <p class="text-xs text-frost/45 uppercase tracking-wide">Waiting for you</p>
+        <p class="mt-2 font-display text-3xl font-semibold">{{ waitingAssessments().length }}</p>
+        <a routerLink="/candidate/assessments" class="mt-2 inline-block text-xs text-signal hover:underline font-medium">
+          View all →
+        </a>
+      </div>
+      <div class="glass-panel rounded-2xl p-5">
+        <p class="text-xs text-frost/45 uppercase tracking-wide">Completed</p>
+        <p class="mt-2 font-display text-3xl font-semibold">{{ results().length }}</p>
+        <a routerLink="/candidate/results" class="mt-2 inline-block text-xs text-signal hover:underline font-medium">
+          View all →
+        </a>
+      </div>
+      <div class="glass-panel rounded-2xl p-5">
+        <p class="text-xs text-frost/45 uppercase tracking-wide">Average score</p>
+        <p class="mt-2 font-display text-3xl font-semibold">
+          {{ averageScorePercent() !== null ? averageScorePercent() + '%' : '—' }}
+        </p>
+        <p class="mt-2 text-xs text-frost/40">Across all submitted assessments</p>
+      </div>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-4">
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display text-lg font-semibold tracking-tight">Waiting for you</h2>
+          <a routerLink="/candidate/assessments" class="text-xs text-signal hover:underline font-medium">View all →</a>
+        </div>
+
+        @if (waitingAssessments().length === 0) {
+          <p class="text-sm text-frost/45">You're all caught up — nothing waiting right now.</p>
+        } @else {
+          <div class="space-y-2">
+            @for (a of waitingAssessments().slice(0, 5); track a.id) {
+              <a
+                [routerLink]="['/candidate/assessments', a.id]"
+                class="flex items-center justify-between gap-3 text-sm rounded-xl px-3 py-2.5 hover:bg-frost/5 transition"
+              >
+                <div class="min-w-0">
+                  <p class="font-medium truncate">{{ a.title }}</p>
+                  <p class="text-xs text-frost/45">{{ a.durationMinutes }} min · {{ a.questionCount }} question(s)</p>
+                </div>
+                <span class="text-signal text-xs font-semibold shrink-0">Start →</span>
+              </a>
+            }
+          </div>
+        }
+      </div>
+
+      <div class="glass-panel rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-display text-lg font-semibold tracking-tight">Recent results</h2>
+          <a routerLink="/candidate/results" class="text-xs text-signal hover:underline font-medium">View all →</a>
+        </div>
+
+        @if (recentResults().length === 0) {
+          <p class="text-sm text-frost/45">No submissions yet.</p>
+        } @else {
+          <div class="space-y-2">
+            @for (r of recentResults(); track r.submissionId) {
+              <a
+                [routerLink]="['/candidate/results', r.submissionId]"
+                class="flex items-center justify-between gap-3 text-sm rounded-xl px-3 py-2.5 hover:bg-frost/5 transition"
+              >
+                <div class="min-w-0">
+                  <p class="font-medium truncate">{{ r.assessmentTitle }}</p>
+                  <p class="text-xs text-frost/45">{{ r.submittedAt | date: 'medium' }}</p>
+                </div>
+                <span class="text-signal font-semibold shrink-0">{{ r.totalScore }}/{{ r.maxPossibleScore }}</span>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

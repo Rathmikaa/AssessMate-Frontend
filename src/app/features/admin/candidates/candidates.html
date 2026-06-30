@@ -112,13 +112,26 @@
     </div>
   }
 
+  <input
+    type="text"
+    (input)="onSearchInput($any($event.target).value)"
+    placeholder="Search by name or email…"
+    class="glass-input w-full max-w-sm rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition"
+  />
+
   <div class="glass-panel rounded-2xl overflow-hidden">
     @if (loadingList()) {
       <p class="p-6 text-sm text-frost/50">Loading candidates…</p>
     } @else if (loadError()) {
       <p class="p-6 text-sm text-flag">{{ loadError() }}</p>
     } @else if (candidates().length === 0) {
-      <p class="p-6 text-sm text-frost/50">No candidates yet — create one above to get started.</p>
+      <p class="p-6 text-sm text-frost/50">
+        @if (totalCount() === 0 && !searchTerm()) {
+          No candidates yet — create one above to get started.
+        } @else {
+          No candidates match "{{ searchTerm() }}".
+        }
+      </p>
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -168,7 +181,21 @@
                         Resend invite
                       </button>
                     } @else if (c.isActive) {
-                      <select #picker class="glass-input rounded-lg px-2 py-1.5 text-xs text-frost outline-none">
+                      <!--
+                        CHANGED: was a #template-ref select read directly via
+                        picker.value. In this zoneless app, selecting an option
+                        fires a native `change` event Angular was never bound
+                        to, so nothing re-rendered — [disabled] kept evaluating
+                        the select's stale initial value and the Send button
+                        never became clickable. Routing the value through an
+                        explicit (change) binding into a signal fixes that, since
+                        Angular-bound events always schedule a re-render.
+                      -->
+                      <select
+                        class="glass-input rounded-lg px-2 py-1.5 text-xs text-frost outline-none"
+                        [value]="pickerValue(c.id) ?? ''"
+                        (change)="onPickerChange(c.id, $any($event.target).value)"
+                      >
                         <option value="">Invite to…</option>
                         @for (a of activeAssessments(); track a.id) {
                           <option [value]="a.id">{{ a.title }}</option>
@@ -176,8 +203,8 @@
                       </select>
                       <button
                         type="button"
-                        [disabled]="busyId() === c.id || !picker.value"
-                        (click)="inviteToAssessment(c, picker.value ? +picker.value : null)"
+                        [disabled]="busyId() === c.id || !pickerValue(c.id)"
+                        (click)="inviteToAssessment(c)"
                         class="rounded-lg px-3 py-1.5 text-xs font-medium text-frost/70 hover:text-signal hover:bg-frost/5 transition disabled:opacity-40"
                       >
                         Send
@@ -207,6 +234,13 @@
           </tbody>
         </table>
       </div>
+
+      <app-pagination
+        [currentPage]="currentPage()"
+        [totalItems]="totalCount()"
+        [pageSize]="pageSize"
+        (pageChange)="onPageChange($event)"
+      />
     }
   </div>
 </div>

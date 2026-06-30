@@ -36,12 +36,14 @@ export class EvaluatorDashboard {
 
     forkJoin({
       assessments: this.assessmentService.getAllForAdmin(),
-      candidates: this.candidateService.getAll(),
+      // pageSize: 1 — this dashboard only needs the total count, not the
+      // actual candidate rows, so there's no reason to fetch a full page.
+      candidates: this.candidateService.getAll(1, 1, ''),
       results: this.resultService.getAll(),
     }).subscribe({
       next: ({ assessments, candidates, results }) => {
         this.assessmentCount.set(assessments.length);
-        this.candidateCount.set(candidates.length);
+        this.candidateCount.set(candidates.totalCount);
         this.submissionCount.set(results.length);
         this.recentResults.set(
           [...results]

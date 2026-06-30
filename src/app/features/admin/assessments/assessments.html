@@ -101,13 +101,26 @@
     </div>
   }
 
+  <input
+    type="text"
+    (input)="onSearchInput($any($event.target).value)"
+    placeholder="Search by title or description…"
+    class="glass-input w-full max-w-sm rounded-xl px-4 py-2.5 text-sm text-frost placeholder:text-frost/30 outline-none transition"
+  />
+
   <div class="glass-panel rounded-2xl overflow-hidden">
     @if (loadingList()) {
       <p class="p-6 text-sm text-frost/50">Loading assessments…</p>
     } @else if (loadError()) {
       <p class="p-6 text-sm text-flag">{{ loadError() }}</p>
-    } @else if (assessments().length === 0) {
-      <p class="p-6 text-sm text-frost/50">No assessments yet — create one above.</p>
+    }  @else if ((assessments() ?? []).length === 0)  {
+      <p class="p-6 text-sm text-frost/50">
+        @if (totalCount() === 0 && !searchTerm()) {
+          No assessments yet — create one above.
+        } @else {
+          No assessments match "{{ searchTerm() }}".
+        }
+      </p>
     } @else {
       <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -175,6 +188,13 @@
           </tbody>
         </table>
       </div>
+
+      <app-pagination
+        [currentPage]="currentPage()"
+       [totalItems]="totalCount() ?? 0"
+        [pageSize]="pageSize"
+        (pageChange)="onPageChange($event)"
+      />
     }
   </div>
 </div>

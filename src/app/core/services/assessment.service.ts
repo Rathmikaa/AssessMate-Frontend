@@ -1,20 +1,45 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
 import { API_BASE_URL } from '../constants/api.constants';
 import { ApiFailure, ApiResponse } from '../models/api-response.model';
 import { AssessmentDetail, AssessmentRequest, AssessmentSummary } from '../models/assessment.model';
+import { PagedResult } from '../models/paged-result.model';
 
 @Injectable({ providedIn: 'root' })
 export class AssessmentService {
   constructor(private readonly http: HttpClient) {}
 
+  /** Used by pickers (e.g. the Candidates page's "invite to assessment"
+   *  dropdown) that need the full list, not one page. The backend's
+   *  GET /admin/assessments always returns the paged envelope now, so
+   *  this just requests a page large enough to cover realistic usage and
+   *  unwraps .items — there's no separate "give me everything" endpoint. */
   getAllForAdmin(): Observable<AssessmentSummary[]> {
+    const params = new HttpParams().set('page', 1).set('pageSize', 1000);
     return this.http
-      .get<ApiResponse<AssessmentSummary[]>>(`${API_BASE_URL}/admin/assessments`)
+      .get<ApiResponse<PagedResult<AssessmentSummary>>>(`${API_BASE_URL}/admin/assessments`, { params })
       .pipe(
-        map((res) => res.body ?? []),
+        map((res) => res.body?.items ?? []),
+        catchError((err) => this.toFailure(err)),
+      );
+  }
+
+  /** Used by the Assessments list page itself — real server-side paging
+   *  and search. */
+  getPagedForAdmin(
+    page: number,
+    pageSize: number,
+    search: string,
+  ): Observable<PagedResult<AssessmentSummary>> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (search.trim()) params = params.set('search', search.trim());
+
+    return this.http
+      .get<ApiResponse<PagedResult<AssessmentSummary>>>(`${API_BASE_URL}/admin/assessments`, { params })
+      .pipe(
+        map((res) => this.unwrap(res)),
         catchError((err) => this.toFailure(err)),
       );
   }

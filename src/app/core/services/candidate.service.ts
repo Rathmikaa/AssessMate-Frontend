@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 
@@ -10,16 +10,22 @@ import {
   CreateCandidateRequest,
   ResendInviteRequest,
 } from '../models/candidate.model';
+import { PagedResult } from '../models/paged-result.model';
 
 @Injectable({ providedIn: 'root' })
 export class CandidateService {
   constructor(private readonly http: HttpClient) {}
 
-  getAll(): Observable<CandidateSummary[]> {
-    return this.http.get<ApiResponse<CandidateSummary[]>>(`${API_BASE_URL}/admin/candidates`).pipe(
-      map((res) => res.body ?? []),
-      catchError((err) => this.toFailure(err)),
-    );
+  getAll(page: number, pageSize: number, search: string): Observable<PagedResult<CandidateSummary>> {
+    let params = new HttpParams().set('page', page).set('pageSize', pageSize);
+    if (search.trim()) params = params.set('search', search.trim());
+
+    return this.http
+      .get<ApiResponse<PagedResult<CandidateSummary>>>(`${API_BASE_URL}/admin/candidates`, { params })
+      .pipe(
+        map((res) => this.unwrap(res)),
+        catchError((err) => this.toFailure(err)),
+      );
   }
 
   getById(id: number): Observable<CandidateDetail> {

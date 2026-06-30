@@ -1,0 +1,31 @@
+@if (totalPages() > 1) {
+  <div class="flex items-center justify-between gap-4 px-5 py-3 border-t border-frost/10 flex-wrap">
+    <p class="text-xs text-frost/45">Showing {{ rangeStart() }}–{{ rangeEnd() }} of {{ totalItems() }}</p>
+
+    <div class="flex items-center gap-1">
+      <button
+        type="button"
+        [disabled]="currentPage() === 1"
+        (click)="goTo(currentPage() - 1)"
+        class="h-8 w-8 rounded-lg flex items-center justify-center text-frost/60 hover:bg-frost/5 hover:text-frost transition disabled:opacity-30"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+
+      <span class="px-3 text-xs font-medium text-frost/70">Page {{ currentPage() }} of {{ totalPages() }}</span>
+
+      <button
+        type="button"
+        [disabled]="currentPage() === totalPages()"
+        (click)="goTo(currentPage() + 1)"
+        class="h-8 w-8 rounded-lg flex items-center justify-center text-frost/60 hover:bg-frost/5 hover:text-frost transition disabled:opacity-30"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+  </div>
+}
